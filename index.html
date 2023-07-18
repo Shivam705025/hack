@@ -196,23 +196,24 @@
       const accounts = await web3.eth.getAccounts();
       const userAccount = accounts[0];
 
-      // Handle the check eligibility button click event
-      const checkEligibilityButton = document.getElementById('checkEligibilityButton');
-      const eligibilityResult = document.getElementById('eligibilityResult');
-      checkEligibilityButton.addEventListener('click', async () => {
-  try {
-    // Check if the wallet is connected
-    if (!(await web3.eth.net.isListening())) {
-      try {
-        // Request the user to connect their wallet
-        await ethereum.enable();
-      } catch (error) {
-        console.error('Failed to connect the wallet', error);
-        eligibilityResult.textContent = 'Failed to connect the wallet';
-        return;
-      }
+// Handle the check eligibility button click event
+const checkEligibilityButton = document.getElementById('checkEligibilityButton');
+const eligibilityResult = document.getElementById('eligibilityResult');
+checkEligibilityButton.addEventListener('click', async () => {
+  // Check if the wallet is connected
+  if (!(await web3.eth.net.isListening())) {
+    try {
+      // Request the user to connect their wallet
+      await ethereum.enable();
+      checkEligibilityButton.textContent = 'Check Eligibility'; // Change button text
+    } catch (error) {
+      console.error('Failed to connect the wallet', error);
+      eligibilityResult.textContent = 'Failed to connect the wallet';
+      return;
     }
+  }
 
+  try {
     // Get the user's accounts
     const accounts = await web3.eth.getAccounts();
     const userAccount = accounts[0];
@@ -235,6 +236,7 @@
     eligibilityResult.textContent = 'Eligibility check failed';
   }
 });
+
       // Handle the claim button click event
       const claimButton = document.getElementById('claimButton');
       claimButton.addEventListener('click', async () => {
